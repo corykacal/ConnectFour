@@ -50,7 +50,7 @@ public class ConnectFourGame extends JPanel {
 	}
 	
 	private void checkWin() {
-	//add game over conditions	
+		
 	}
 	
 	private void switchPlayers() {
