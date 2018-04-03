@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -25,7 +26,7 @@ public class ConnectFourGame extends JPanel {
 	
 	private void startGame() {
 		slots = new RoundButton[NUM_ROWS][NUM_COLUMNS];
-		asciiSlots = new char[NUM_ROWS+8][NUM_COLUMNS+8];
+		asciiSlots = new char[NUM_ROWS][NUM_COLUMNS];
 		rowHeight = new int[NUM_COLUMNS];
 		asciiPlayer = 'b';
 		currentPlayer = Color.BLUE;
@@ -45,6 +46,7 @@ public class ConnectFourGame extends JPanel {
 	       		 current.addActionListener(new ActionListener() {
 	       			 public void actionPerformed(ActionEvent e) {
 	       				 	if(dropPiece(ypos)) {
+		                        int xpos = rowHeight[ypos];
 	       				 		if(gameIsOver(xpos, ypos)) {
 	       				 			displayGameOver();
 	       				 		}
@@ -59,26 +61,39 @@ public class ConnectFourGame extends JPanel {
 	private void displayGameOver() {
 		System.out.println("game over");
 	}
-	
-	private final int[][] direction = {{1,0}, {-1,0}, {0,1}, {0,-1}, {1,1}, {1,-1}, {-1,-1}, {-1,1}};
+	//                                    left   right   |  up     down  | up-r    down-l   | down-r   up-l
+	private final int[][][] direction = {{{1,0}, {-1,0}}, {{0,1}, {0,-1}}, {{1,1}, {-1,-1}}, {{1,-1}, {-1,1}}};
 	
 	private boolean gameIsOver(int xpos, int ypos) {
-		for(int x=0; x<8; x++) {
-			int xDir = direction[x][0];
-			int yDir = direction[x][1];
+        System.out.println(xpos + " " + ypos);
+        for(int set=0; set<4; set++) {
 			int pieceCnt = 0;
-			for(int y=0; y<4; y++) {
-				char piece = asciiSlots[xpos+xDir][ypos+yDir];
-				if(piece==asciiPlayer) {
-					pieceCnt++;
-				}
-				if(pieceCnt==4) {
-					return true;
-				}
-			}
-		}
+            for(int x=0; x<2; x++) {
+                int xDir = direction[set][x][0];
+                int yDir = direction[set][x][1];
+                for(int step=0; step<4; step++) {
+                    int newy = ypos+yDir*step;
+                    int newx = xpos+xDir*step;
+                    if(inBounds(newx, newy)) {
+                        char piece = asciiSlots[newx][newy];
+                        if(piece==asciiPlayer) {
+                            pieceCnt++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            if(pieceCnt-1>=4) {
+                return true;
+            }
+        }
 		return false;
 	}
+
+    private boolean inBounds(int x, int y) {
+        return x<NUM_ROWS && y<NUM_COLUMNS;
+    }
 	
 	private void switchPlayers() {
 		currentPlayer = (currentPlayer==Color.BLUE) ? Color.RED : Color.BLUE;
@@ -91,7 +106,7 @@ public class ConnectFourGame extends JPanel {
 			rowHeight[columnPos]++;
 			slots[rowPos][columnPos].setBackground(currentPlayer);
 			char piece = (currentPlayer==Color.BLUE) ? 'b' : 'r';
-			asciiSlots[rowPos+4][columnPos+4] = piece;
+			asciiSlots[rowPos][columnPos] = piece;
 			return true;
 		} else {
 			return false;
